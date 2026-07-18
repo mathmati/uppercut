@@ -7,7 +7,7 @@ import FreeCAD as App
 
 from . import assembly
 
-_VERSION = "0.1.0"
+_VERSION = "0.4.0"
 
 _CONSENT_TEXT = (
     "Use SketchUp-style navigation? (middle-mouse orbit, Shift+middle pan, "

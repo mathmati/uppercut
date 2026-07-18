@@ -3,7 +3,7 @@
 
 Run from the repo root (see the wrapper in the README; plain
 ``freecadcmd verify/headless_regression.py`` also works when invoked so that
-``__name__ == "__main__"``). Exit code 0 and a final "38/38 checks pass"
+``__name__ == "__main__"``). Exit code 0 and a final "39/39 checks pass"
 line when green.
 
 What is covered (the GUI itself is not; freecadcmd has no command manager,
@@ -54,6 +54,8 @@ so buttons, dialogs and probing through Gui.Command are out of scope here):
    wiring        32    toolstate call sites in commands.py / init_gui.py
                        (static xref: eraser arm/disarm, Select, restore
                        command, nav watcher attach/detach)
+   shortcuts     +     workbench-scoped apply/restore: priors recorded once,
+                       re-apply keeps them, restore puts the store back
    group safety  +     a feature inside a Body is never pulled out; container
                        and child selected together dedupe to the container
    eraser safety +     dependency deletes refuse atomically; deleting a
@@ -95,7 +97,7 @@ import Part  # noqa: E402  # makes Part::Box creatable
 from freecad.UppercutWB import (assembly, eraser, group, navstyle, paint,  # noqa: E402
                                 shortcuts, toolstate)
 
-EXPECTED_CHECKS = 38
+EXPECTED_CHECKS = 39
 
 _checks = []
 
@@ -607,9 +609,45 @@ def c24(fx):
         ok(p.GetString("Uppercut_Eraser", "") == "E",
            "round-trip E = %r" % p.GetString("Uppercut_Eraser", ""))
     finally:
-        p.RemString("SketchLayer_Line")
+        restored = shortcuts.restore_bindings(p=p)
+    ok("SketchLayer_Line" in restored and "Uppercut_Eraser" in restored,
+       "restore missed a recorded binding: %r" % (restored,))
+    ok(p.GetString("SketchLayer_Line", "") == "", "restore left L behind")
+
+
+@check("shortcuts: workbench-scoped restore puts pre-existing values back")
+def c24b(fx):
+    p = App.ParamGet(shortcuts.PARAM_GROUP)
+    priors = App.ParamGet(shortcuts.PRIOR_GROUP)
+    try:
+        # the user already had E bound before Uppercut
+        p.SetString("Uppercut_Eraser", "F9")
+        shortcuts.apply_bindings(
+            [("E", "Uppercut_Eraser"), ("P", "PushPull_PushPull")],
+            p=p, priors=priors)
+        ok(p.GetString("Uppercut_Eraser", "") == "E", "apply did not write E")
+        # a re-apply (workbench re-entered) must not clobber the recorded prior
+        shortcuts.apply_bindings(
+            [("E", "Uppercut_Eraser")], p=p, priors=priors)
+        ok(priors.GetString("Uppercut_Eraser", "") == "F9",
+           "re-apply clobbered the recorded prior: %r"
+           % priors.GetString("Uppercut_Eraser", ""))
+        restored = shortcuts.restore_bindings(p=p, priors=priors)
+        ok(sorted(restored) == ["PushPull_PushPull", "Uppercut_Eraser"],
+           "restored = %r" % (restored,))
+        ok(p.GetString("Uppercut_Eraser", "") == "F9",
+           "pre-existing binding not restored: %r"
+           % p.GetString("Uppercut_Eraser", ""))
+        ok(p.GetString("PushPull_PushPull", "") == "",
+           "fresh binding not removed on restore")
+        ok(not priors.GetBool("Uppercut_Eraser.recorded", False),
+           "recorded flag not cleared")
+        # restore with nothing recorded is a clean no-op
+        ok(shortcuts.restore_bindings(p=p, priors=priors) == [],
+           "second restore was not a no-op")
+    finally:
         p.RemString("Uppercut_Eraser")
-    ok(p.GetString("SketchLayer_Line", "") == "", "cleanup left L behind")
+        p.RemString("PushPull_PushPull")
 
 
 # --- 25: make group ---------------------------------------------------------------

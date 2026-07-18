@@ -11,7 +11,10 @@ everything except the final GUI composition runs headless under freecadcmd:
     binding; the caller surfaces a status-bar note instead.
   * :func:`apply_bindings` -- write the bindings to
     ``User parameter:BaseApp/Shortcut``, the same store FreeCAD's
-    Customize > Keyboard dialog uses, so the user can remap afterwards.
+    Customize > Keyboard dialog uses, recording each pre-existing value
+    first; :func:`restore_bindings` puts the store back exactly. The
+    workbench applies on Activated and restores on Deactivated, so the
+    single letters never leak into other workbenches.
   * :func:`gui_accel_owner` / :func:`apply_all` -- the GUI-time composition:
     build the accelerator->command table through ``Gui.Command``
     introspection, plan, apply. If the introspection API is missing or
@@ -31,6 +34,12 @@ import FreeCAD as App
 
 #: FreeCAD's own shortcut store (what Customize > Keyboard writes).
 PARAM_GROUP = "User parameter:BaseApp/Shortcut"
+
+#: Where the pre-Uppercut value of every binding we write is recorded, so
+#: leaving the workbench can put things back exactly. The letters are
+#: workbench-scoped by policy: applied on Activated, restored on
+#: Deactivated, never left behind globally.
+PRIOR_GROUP = "User parameter:BaseApp/Uppercut/ShortcutPriors"
 
 #: The desired SketchUp-style map, in toolbar order. Pure data. FollowMe has
 #: no default letter on purpose (SketchUp does not ship one either).
@@ -91,12 +100,46 @@ def plan_bindings(available, accel_owner=None):
     return apply_list, skipped
 
 
-def apply_bindings(bindings, p=None):
+def apply_bindings(bindings, p=None, priors=None):
     """Write ``(accelerator, command)`` pairs to the shortcut parameter
-    group (same store Customize > Keyboard uses; remappable there)."""
+    group (same store Customize > Keyboard uses; remappable there).
+
+    Before each write the pre-existing value is recorded in PRIOR_GROUP
+    (once; a re-apply while already applied does not clobber the recorded
+    prior), so :func:`restore_bindings` can put the store back exactly."""
     p = p if p is not None else App.ParamGet(PARAM_GROUP)
+    priors = priors if priors is not None else App.ParamGet(PRIOR_GROUP)
     for accel, command in bindings:
+        if not priors.GetBool(command + ".recorded", False):
+            priors.SetString(command, p.GetString(command, ""))
+            priors.SetBool(command + ".recorded", True)
         p.SetString(command, accel)
+
+
+def restore_bindings(p=None, priors=None):
+    """Put every recorded binding back to its pre-Uppercut value (an empty
+    recorded prior removes the key again). Returns the commands restored.
+    Safe to call when nothing was applied; commands the user remapped while
+    the workbench was active go back to their pre-Uppercut value too, since
+    the letters are workbench-scoped by policy."""
+    p = p if p is not None else App.ParamGet(PARAM_GROUP)
+    priors = priors if priors is not None else App.ParamGet(PRIOR_GROUP)
+    restored = []
+    for _accel, command in DESIRED_SHORTCUTS:
+        if not priors.GetBool(command + ".recorded", False):
+            continue
+        prior = priors.GetString(command, "")
+        try:
+            if prior:
+                p.SetString(command, prior)
+            else:
+                p.RemString(command)
+        except Exception:  # noqa: BLE001 - leave this one, restore the rest
+            continue
+        priors.RemString(command)
+        priors.RemBool(command + ".recorded")
+        restored.append(command)
+    return restored
 
 
 def gui_accel_owner(gui):

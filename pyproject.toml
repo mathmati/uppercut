@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "freecad-uppercut"
-version = "0.1.0"
+version = "0.4.0"
 description = "A simplified, SketchUp-style umbrella interface for FreeCAD, assembled from companion addons."
 readme = "README.md"
 license = { text = "MIT" }

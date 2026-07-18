@@ -25,8 +25,11 @@ class UppercutWorkbench(Gui.Workbench):
         "uppercut.svg",
     )
 
+    #: Detected command set, kept for the per-activation shortcut apply.
+    _available = frozenset()
+
     def Initialize(self):
-        from . import assembly, commands, shortcuts
+        from . import assembly, commands
 
         # Register own commands; force-register installed siblings, then
         # detect what is actually available (live command manager first,
@@ -41,7 +44,7 @@ class UppercutWorkbench(Gui.Workbench):
                 continue
         available |= std_available
         commands.register(available)
-        self._apply_shortcuts(shortcuts, commands, available)
+        UppercutWorkbench._available = frozenset(available)
 
         toolbar = assembly.build_toolbar(available)
         self.appendToolbar("Uppercut", toolbar)
@@ -63,14 +66,18 @@ class UppercutWorkbench(Gui.Workbench):
             menu.append(assembly.CMD_MISSING_NOTE)
         self.appendMenu("Uppercut", menu)
 
-    def _apply_shortcuts(self, shortcuts, commands, available):
-        """Single-letter tool shortcuts (SketchUp muscle memory), written to
-        FreeCAD's own shortcut parameters so users can remap them in
-        Customize > Keyboard. Conflicting accelerators are skipped with a
-        status-bar note, never clobbered."""
+    def _apply_shortcuts(self, shortcuts, commands):
+        """Single-letter tool shortcuts (SketchUp muscle memory), applied on
+        every Activated and restored on Deactivated, so the letters exist
+        only while Uppercut is the active workbench. Written to FreeCAD's
+        own shortcut parameters (remappable in Customize > Keyboard while
+        active); each pre-existing value is recorded first and put back on
+        leave. Conflicting accelerators are skipped with a status-bar note,
+        never clobbered."""
         try:
-            _applied, skipped = shortcuts.apply_all(Gui, available)
-        except Exception as exc:  # noqa: BLE001 - shortcuts must not break init
+            _applied, skipped = shortcuts.apply_all(
+                Gui, UppercutWorkbench._available)
+        except Exception as exc:  # noqa: BLE001 - shortcuts must not break entry
             App.Console.PrintWarning(
                 "Uppercut: shortcut setup failed: %s\n" % exc)
             return
@@ -81,8 +88,17 @@ class UppercutWorkbench(Gui.Workbench):
                 + ", ".join("'%s' (%s)" % (accel, reason)
                             for accel, _cmd, reason in conflicts))
 
+    def _restore_shortcuts(self, shortcuts):
+        try:
+            shortcuts.restore_bindings()
+        except Exception as exc:  # noqa: BLE001 - leaving must not crash
+            App.Console.PrintWarning(
+                "Uppercut: shortcut restore failed: %s\n" % exc)
+
     def Activated(self):
-        from . import navstyle
+        from . import commands, navstyle, shortcuts
+
+        self._apply_shortcuts(shortcuts, commands)
 
         try:
             state = navstyle.load_state()
@@ -123,8 +139,9 @@ class UppercutWorkbench(Gui.Workbench):
             pass
 
     def Deactivated(self):
-        from . import navstyle
+        from . import navstyle, shortcuts
 
+        self._restore_shortcuts(shortcuts)
         try:
             navstyle.unwatch_views()
             # per-view mode restores here; "everywhere" stays until the
@@ -139,3 +156,14 @@ class UppercutWorkbench(Gui.Workbench):
 
 
 Gui.addWorkbench(UppercutWorkbench())
+
+# Crash insurance: if the last session ended while Uppercut was active,
+# Deactivated never ran and the workbench-scoped letters leaked into this
+# session. This module is imported at every GUI startup, so restore any
+# recorded bindings now; with nothing recorded this is a no-op.
+try:
+    from . import shortcuts as _shortcuts
+
+    _shortcuts.restore_bindings()
+except Exception:  # noqa: BLE001 - insurance must never break startup
+    pass

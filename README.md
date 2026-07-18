@@ -86,9 +86,11 @@ the same icon helper as before. `uppercut.svg` stays as the workbench icon.
 
 ## Shortcuts
 
-The main tools get SketchUp's single-letter shortcuts, written at workbench
-activation into FreeCAD's own shortcut parameters
-(`User parameter:BaseApp/Shortcut`), so they show up and can be remapped in
+The main tools get SketchUp's single-letter shortcuts. They are workbench
+scoped: applied when you enter Uppercut, restored to whatever they were when
+you leave, so the letters never change other workbenches. While Uppercut is
+active they live in FreeCAD's own shortcut parameters
+(`User parameter:BaseApp/Shortcut`) and can be remapped in
 Tools > Customize > Keyboard:
 
 | Key | Tool | Command |
@@ -209,7 +211,7 @@ are optional; any subset works.
 
 ## Verification
 
-`verify/headless_regression.py` passes 36/36 checks under freecadcmd
+`verify/headless_regression.py` passes 39/39 checks under freecadcmd
 (FreeCAD 1.1.1, bundled Python 3.11.14, Windows 11). Run log:
 `verify/out-headless.txt`. Covered: toolbar assembly (full house with the
 five SketchLayer draw commands plus Offset and Follow Me right after
