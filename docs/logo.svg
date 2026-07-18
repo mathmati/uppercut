@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 780" width="640" height="780">
+  <!-- Uppercut logo: boxing glove, SketchUp-red left / FreeCAD-blue right,
+       white F across the seam, gear-notched right edge. Drawn without
+       clipPath/gradients so Qt's SVG Tiny renderer (FreeCAD icons) shows it
+       identically to browsers. -->
+
+  <!-- ============ glove: left half (red) ============ -->
+  <path d="M330 86
+           C 280 62, 215 68, 178 108
+           C 152 136, 146 170, 152 200
+           C 128 214, 112 244, 116 278
+           C 120 312, 142 336, 168 346
+           C 168 392, 196 430, 246 446
+           L 330 452 Z"
+        fill="#d92b23"/>
+  <!-- red stripes, kept inside the red half -->
+  <g stroke="#b31d17" stroke-width="20" stroke-linecap="round">
+    <line x1="196" y1="112" x2="290" y2="206"/>
+    <line x1="160" y1="180" x2="280" y2="300"/>
+    <line x1="150" y1="272" x2="266" y2="388"/>
+    <line x1="196" y1="416" x2="240" y2="438"/>
+  </g>
+  <!-- thumb stitches -->
+  <g stroke="#8f1511" stroke-width="6" stroke-linecap="round">
+    <line x1="176" y1="252" x2="196" y2="268"/>
+    <line x1="196" y1="248" x2="192" y2="272"/>
+    <line x1="216" y1="252" x2="198" y2="268"/>
+  </g>
+
+  <!-- ============ glove: right half (blue, gear-notched edge) ============ -->
+  <path d="M330 86
+           C 380 64, 445 66, 486 96
+           C 516 118, 530 148, 528 178
+           L 560 170 L 566 196 L 536 208
+           C 548 224, 554 244, 552 264
+           L 584 276 L 576 304 L 544 300
+           C 538 322, 524 342, 504 356
+           L 516 388 L 490 400 L 474 376
+           C 462 384, 448 390, 432 394
+           C 428 418, 412 438, 386 448
+           L 330 452 Z"
+        fill="#2f7fc1"/>
+  <!-- gear hint inside the blue half -->
+  <path d="M420 160 L 446 150 L 458 172 L 484 172 L 490 198 L 512 210 L 502 234
+           L 514 258 L 492 272 L 488 298 L 462 300 L 446 320 L 424 306
+           L 398 312 L 390 288 L 368 274 L 378 252 L 370 228 L 392 216
+           L 396 190 L 420 186 Z"
+        fill="#2568a3"/>
+
+  <!-- glove outline -->
+  <path d="M330 86
+           C 280 62, 215 68, 178 108
+           C 152 136, 146 170, 152 200
+           C 128 214, 112 244, 116 278
+           C 120 312, 142 336, 168 346
+           C 168 392, 196 430, 246 446
+           L 330 452 L 386 448
+           C 412 438, 428 418, 432 394
+           C 448 390, 462 384, 474 376
+           L 490 400 L 516 388 L 504 356
+           C 524 342, 538 322, 544 300
+           L 576 304 L 584 276 L 552 264
+           C 554 244, 548 224, 536 208
+           L 566 196 L 560 170 L 528 178
+           C 530 148, 516 118, 486 96
+           C 445 66, 380 64, 330 86 Z"
+        fill="none" stroke="#111111" stroke-width="12" stroke-linejoin="round"/>
+
+  <!-- ============ the F ============ -->
+  <path d="M272 150 L 440 150 L 440 208 L 332 208 L 332 258 L 420 258 L 420 314 L 332 314 L 332 420 L 272 420 Z"
+        fill="#ffffff"/>
+
+  <!-- ============ wrist cuff ============ -->
+  <path d="M238 456 L 424 452 L 448 462 L 454 548 L 430 560 L 240 564 L 214 552 L 216 466 Z"
+        fill="#f4c200" stroke="#111111" stroke-width="11" stroke-linejoin="round"/>
+  <line x1="256" y1="472" x2="252" y2="548" stroke="#111111" stroke-width="7"/>
+  <line x1="416" y1="468" x2="422" y2="546" stroke="#111111" stroke-width="7"/>
+  <!-- red/blue band under the cuff -->
+  <path d="M244 564 L 334 562 L 334 596 L 250 598 Z" fill="#d92b23"/>
+  <path d="M334 562 L 426 560 L 420 594 L 334 596 Z" fill="#2f7fc1"/>
+  <path d="M244 564 L 426 560 L 420 594 L 250 598 Z"
+        fill="none" stroke="#111111" stroke-width="9" stroke-linejoin="round"/>
+
+  <!-- ============ forearm ============ -->
+  <path d="M262 598 L 234 758 C 300 778, 376 778, 436 756 L 408 596 Z"
+        fill="#f2c9a0" stroke="#111111" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M324 620 C 328 672, 324 716, 314 754 L 344 757 C 338 712, 336 664, 340 622 Z"
+        fill="#dba070"/>
+</svg>

@@ -1,5 +1,7 @@
 # FreeCAD Uppercut
 
+<img src="docs/logo.svg" alt="Uppercut logo: a boxing glove, half SketchUp red, half FreeCAD blue, with a white F" width="260">
+
 Uppercut is the direct-modeling interface we always wished FreeCAD had.
 
 It takes the best ideas from the easiest modelers to use (SketchUp's
