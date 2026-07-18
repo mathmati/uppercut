@@ -76,10 +76,19 @@ def apply_to_view_objects(view_objects, rgba):
     for vo in view_objects or []:
         if vo is None:
             continue
+        colored = False
+        # separate assignments: an object accepting ShapeColor but rejecting
+        # DiffuseColor (or the reverse) is still visibly colored and counts
         try:
             vo.ShapeColor = rgb
+            colored = True
+        except Exception:  # noqa: BLE001 - not every view object has it
+            pass
+        try:
             vo.DiffuseColor = [rgba]
-        except Exception:  # noqa: BLE001 - skip objects without a colorable view
-            continue
-        count += 1
+            colored = True
+        except Exception:  # noqa: BLE001
+            pass
+        if colored:
+            count += 1
     return count

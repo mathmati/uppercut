@@ -3,7 +3,7 @@
 
 Run from the repo root (see the wrapper in the README; plain
 ``freecadcmd verify/headless_regression.py`` also works when invoked so that
-``__name__ == "__main__"``). Exit code 0 and a final "36/36 checks pass"
+``__name__ == "__main__"``). Exit code 0 and a final "38/38 checks pass"
 line when green.
 
 What is covered (the GUI itself is not; freecadcmd has no command manager,
@@ -54,6 +54,10 @@ so buttons, dialogs and probing through Gui.Command are out of scope here):
    wiring        32    toolstate call sites in commands.py / init_gui.py
                        (static xref: eraser arm/disarm, Select, restore
                        command, nav watcher attach/detach)
+   group safety  +     a feature inside a Body is never pulled out; container
+                       and child selected together dedupe to the container
+   eraser safety +     dependency deletes refuse atomically; deleting a
+                       container takes its children (no orphans)
    navstyle      33-36 "everywhere" global preference write + restore with
                        real parameters (prior value recorded, idempotent,
                        exact restore), consent mode state machine incl.
@@ -91,7 +95,7 @@ import Part  # noqa: E402  # makes Part::Box creatable
 from freecad.UppercutWB import (assembly, eraser, group, navstyle, paint,  # noqa: E402
                                 shortcuts, toolstate)
 
-EXPECTED_CHECKS = 36
+EXPECTED_CHECKS = 38
 
 _checks = []
 
@@ -630,6 +634,74 @@ def c25(fx):
     ok(doc.getObject("GroupBox1") is not None
        and doc.getObject("GroupBox2") is not None,
        "boxes did not come back after undo")
+
+
+def _body_with_pad(doc, prefix):
+    """Body -> Sketch -> Pad, recomputed. Returns (body, sketch, pad)."""
+    import Part as _Part
+    body = doc.addObject("PartDesign::Body", prefix + "Body")
+    sk = body.newObject("Sketcher::SketchObject", prefix + "Sketch")
+    sk.AttachmentSupport = [(doc.XY_Plane, "")]
+    sk.MapMode = "FlatFace"
+    for a, b in [((0, 0), (10, 0)), ((10, 0), (10, 5)),
+                 ((10, 5), (0, 5)), ((0, 5), (0, 0))]:
+        sk.addGeometry(_Part.LineSegment(
+            App.Vector(a[0], a[1], 0), App.Vector(b[0], b[1], 0)), False)
+    doc.recompute()
+    pad = body.newObject("PartDesign::Pad", prefix + "Pad")
+    pad.Profile = sk
+    pad.Length = 5
+    doc.recompute()
+    return body, sk, pad
+
+
+@check("make group: a feature inside a Body is refused, Body stays intact")
+def c25b(fx):
+    doc = fx.doc
+    body, sk, pad = _body_with_pad(doc, "Gr")
+    result = group.make_group(doc, [pad])
+    ok(result["group"] is None and result["moved"] == [],
+       "grouping a Body feature must be refused: %r" % (result,))
+    ok([o.Name for o in body.Group] == ["GrSketch", "GrPad"],
+       "Body lost children: %r" % ([o.Name for o in body.Group],))
+    ok("belong" in result["message"], "message: %s" % result["message"])
+    # container + child both selected: only the container is grouped
+    free = doc.addObject("Part::Box", "GrFree")
+    doc.recompute()
+    result = group.make_group(doc, [body, pad, free])
+    ok(sorted(result["moved"]) == ["GrBody", "GrFree"],
+       "dedupe to container failed: %r" % (result["moved"],))
+    ok([o.Name for o in body.Group] == ["GrSketch", "GrPad"],
+       "Body children moved: %r" % ([o.Name for o in body.Group],))
+    doc.undo()
+
+
+@check("eraser: dependency refusal is atomic; container delete takes children")
+def c26b(fx):
+    doc = fx.doc
+    body, sk, pad = _body_with_pad(doc, "Er")
+    # deleting the Sketch the Pad uses is refused, nothing deleted
+    result = eraser.delete_objects(doc, [sk])
+    ok(result["deleted"] == [] and result["blocked"],
+       "dependency delete not refused: %r" % (result,))
+    ok(doc.getObject("ErSketch") is not None
+       and doc.getObject("ErPad") is not None, "refusal was not atomic")
+    ok("used by" in result["message"], "message: %s" % result["message"])
+    # deleting the Body takes Sketch and Pad with it, nothing orphaned
+    free = doc.addObject("Part::Box", "ErFree")
+    doc.recompute()
+    result = eraser.delete_objects(doc, [body])
+    ok(sorted(result["deleted"]) == ["ErBody", "ErPad", "ErSketch"],
+       "container delete incomplete: %r" % (result["deleted"],))
+    ok(doc.getObject("ErSketch") is None and doc.getObject("ErPad") is None,
+       "orphaned children left behind")
+    ok(doc.getObject("ErFree") is not None, "unrelated object deleted")
+    doc.undo()
+    ok(doc.getObject("ErBody") is not None
+       and doc.getObject("ErPad") is not None,
+       "undo did not restore the body delete")
+    eraser.delete_objects(doc, [doc.getObject("ErBody")])
+    doc.getObject("ErFree") and doc.removeObject("ErFree")
     result = group.make_group(doc, [])
     ok(result["group"] is None and result["moved"] == []
        and "nothing" in result["message"],

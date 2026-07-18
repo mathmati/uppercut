@@ -318,6 +318,15 @@ class _EraserCommand(object):
         if session is None or not session.armed:
             self._teardown_callbacks()
             return
+        # the armed document was closed or the user switched documents:
+        # disarm instead of deleting in (or crashing on) the wrong document
+        try:
+            if App.ActiveDocument is not session.doc:
+                self._disarm()
+                return
+        except Exception:  # noqa: BLE001 - dead document reference
+            self._disarm()
+            return
         etype = arg.get("Type")
         if etype == "SoKeyboardEvent" and arg.get("Key") == "ESCAPE":
             self._disarm()
@@ -332,7 +341,13 @@ class _EraserCommand(object):
             _status(result["message"])
 
     def _picked_object(self, pos):
-        """The top object under the cursor, via the view's own pick info."""
+        """The object under the cursor, promoted to its outermost container.
+
+        A click on a face of a Body picks the feature (Pad), but SketchUp
+        eraser semantics are "click an object, the whole object goes", and
+        deleting a lone feature out of a Body is exactly the broken-part
+        trap eraser.delete_objects guards against. So the pick climbs to
+        the top-level container (Body, App::Part) before deleting."""
         if pos is None or _EraserCommand._view is None:
             return None
         try:
@@ -345,7 +360,16 @@ class _EraserCommand(object):
         doc = App.ActiveDocument
         if not name or doc is None:
             return None
-        return doc.getObject(name)
+        obj = doc.getObject(name)
+        while obj is not None:
+            try:
+                parent = obj.getParentGeoFeatureGroup()
+            except Exception:  # noqa: BLE001
+                parent = None
+            if parent is None:
+                break
+            obj = parent
+        return obj
 
 
 class _EraserKeyFilter(QtCore.QObject):
