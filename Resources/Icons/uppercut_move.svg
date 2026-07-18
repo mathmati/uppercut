@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <style>
+      .seg { fill:none; stroke:#3d6d8f; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+    </style>
+  </defs>
+  <line class="seg" x1="32" y1="38" x2="32" y2="12" />
+  <polyline class="seg" points="26,20 32,12 38,20" />
+  <line class="seg" x1="32" y1="26" x2="32" y2="52" />
+  <polyline class="seg" points="26,44 32,52 38,44" />
+  <line class="seg" x1="38" y1="32" x2="12" y2="32" />
+  <polyline class="seg" points="20,26 12,32 20,38" />
+  <line class="seg" x1="26" y1="32" x2="52" y2="32" />
+  <polyline class="seg" points="44,26 52,32 44,38" />
+</svg>

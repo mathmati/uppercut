@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <style>
+      .top { fill:#bfe0f5; stroke:none; }
+      .seg { fill:none; stroke:#3d6d8f; stroke-width:2.8; stroke-linecap:round; stroke-linejoin:round; }
+    </style>
+  </defs>
+  <path class="top" d="M32 14 L54 26 L32 38 L10 26 Z" />
+  <path class="seg" d="M32 14 L54 26 L54 48 L32 60 L10 48 L10 26 Z" />
+  <path class="seg" d="M10 26 L32 38 L54 26" />
+  <path class="seg" d="M32 38 L32 60" />
+</svg>

@@ -1,0 +1,39 @@
+[ ok   1] assembly: full house produces the exact toolbar order
+[ ok   2] assembly: missing SketchLayer omits its draw buttons, keeps the rest
+[ ok   3] assembly: missing PushPull omits the Push/Pull button only
+[ ok   4] assembly: missing SiteContext omits the Add Location button only
+[ ok   5] assembly: missing Migration Guide falls back to the own About button
+[ ok   6] assembly: Move/Rotate needs a transform command (either candidate)
+[ ok   7] assembly: Tape Measure needs a measure command (either candidate)
+[ ok   8] assembly: separator hygiene with empty groups and partial views
+[ ok   9] static xref: spec command names match addCommand() in the sources
+[ ok  10] detection: live lookup governs when the command manager answers
+[ ok  11] detection: static source fallback against the real sources
+[ ok  12] eraser: transaction delete removes the selected boxes
+[ ok  13] eraser: undo restores the deleted boxes
+[ ok  14] eraser: empty selection is a no-op with a message
+[ ok  15] paint: palette names build the expected RGBA tuple
+[ ok  16] paint: tuple input and validation of bad input
+[ ok  17] navstyle: Uppercut parameter round-trip (consent + saved style)
+[ ok  18] navstyle: view API probe order (set/getNavigationType first)
+[ ok  19] navstyle: Preferences/View NavigationStyle round-trip and restore
+[ ok  20] icons: every own command maps to a distinct, existing SVG
+[ ok  21] assembly: an older SketchLayer (Line/Rectangle only) degrades cleanly
+[ ok  22] shortcuts: the SketchUp letter map is complete and collision-free
+[ ok  23] shortcuts: conflicts and unavailable commands are skipped, not clobbered
+[ ok  24] shortcuts: apply writes User parameter:BaseApp/Shortcut entries
+[ ok  25] make group: two boxes wrapped in one App::Part; undo restores them
+[ ok  26] eraser: armed click-to-delete session (arm, delete picked, disarm)
+[ ok  27] assembly: Offset/FollowMe sit right after Push/Pull, each optional
+[ ok  28] assembly: sibling icons resolve via the package path (None when absent)
+[ ok  29] shortcuts: GUI accelerator introspection builds the conflict table
+[ ok  30] toolstate: radio tracker (radio clear, re-assert, inactive, clear_all)
+[ ok  31] toolstate: Qt adapter lookup with fake toolbars/actions
+[ ok  32] wiring: toolstate/nav call sites in commands.py and init_gui.py
+[ ok  33] navstyle: 'everywhere' writes + restores the global preference
+[ ok  34] navstyle: consent mode state machine (view/global/none + legacy)
+[ ok  35] navstyle: apply/restore across ALL open views (fake gui)
+[ ok  36] navstyle: watcher decision logic (per-view only, applied only)
+----------------------------------------------------------------
+36/36 checks pass
+SYSTEM_EXIT code=0

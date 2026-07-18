@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+  <name>Uppercut</name>
+  <description>A simplified, SketchUp-style interface for FreeCAD: one workbench with one toolbar (Select, Line, Rectangle, Push/Pull, Move/Rotate, Eraser, Tape Measure, Paint Bucket, views, Add Location, Instructor), assembled from the SketchLayer, PushPull, SiteContext and Migration Guide companion addons plus its own glue tools. Missing companions degrade gracefully: their buttons are omitted and the menu says what to install.</description>
+  <version>0.1.0</version>
+  <date>2026-07-18</date>
+  <maintainer email="177616452+mathmati@users.noreply.github.com">mathmati</maintainer>
+  <license file="LICENSE">MIT</license>
+  <url type="repository" branch="main">https://github.com/mathmati/FreeCAD-Uppercut</url>
+  <url type="readme">https://github.com/mathmati/FreeCAD-Uppercut/raw/main/README.md</url>
+  <url type="bugtracker">https://github.com/mathmati/FreeCAD-Uppercut/issues</url>
+  <icon>Resources/Icons/uppercut.svg</icon>
+  <freecadmin>1.1.0</freecadmin>
+  <pythonmin>3.9</pythonmin>
+  <content>
+    <workbench>
+      <classname>UppercutWorkbench</classname>
+      <icon>Resources/Icons/uppercut.svg</icon>
+    </workbench>
+  </content>
+  <tag>ux</tag>
+  <tag>sketchup-style</tag>
+  <tag>umbrella</tag>
+  <tag>toolbar</tag>
+  <tag>beginners</tag>
+</package>

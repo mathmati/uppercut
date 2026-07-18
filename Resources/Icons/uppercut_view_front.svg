@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <style>
+      .face { fill:#bfe0f5; stroke:#3d6d8f; stroke-width:2.5; stroke-linejoin:round; }
+      .let  { fill:none; stroke:#3d6d8f; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+    </style>
+  </defs>
+  <rect class="face" x="14" y="14" width="36" height="36" />
+  <polyline class="let" points="40,24 26,24 26,42" />
+  <line class="let" x1="26" y1="33" x2="37" y2="33" />
+</svg>
