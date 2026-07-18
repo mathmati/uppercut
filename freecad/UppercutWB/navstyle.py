@@ -250,15 +250,30 @@ def restore_style(gui, list_documents=None):
     applied), or "failed".
     """
     state = load_state()
-    if not state["applied"] or not state["saved_style"]:
+    if not state["applied"]:
+        return "nothing"
+    via_pref = state["saved_via"] == "preference"
+    # An empty saved_style with the preference via is meaningful: the global
+    # preference was UNSET before we wrote it (a fresh install), and restoring
+    # means unsetting it again. Only a non-preference apply with no saved
+    # style is truly nothing to do.
+    if not state["saved_style"] and not via_pref:
         return "nothing"
     ok = False
-    for view in all_3d_views(gui, list_documents=list_documents):
-        if set_view_style(view, state["saved_style"]):
-            ok = True
-    if state["saved_via"] == "preference" or not ok:
+    if state["saved_style"]:
+        for view in all_3d_views(gui, list_documents=list_documents):
+            if set_view_style(view, state["saved_style"]):
+                ok = True
+    if via_pref or not ok:
         try:
-            pref_params().SetString(PREF_KEY, state["saved_style"])
+            pref = pref_params()
+            if state["saved_style"]:
+                pref.SetString(PREF_KEY, state["saved_style"])
+            else:
+                try:
+                    pref.RemString(PREF_KEY)
+                except Exception:  # noqa: BLE001
+                    pref.SetString(PREF_KEY, "")
             ok = True
         except Exception:  # noqa: BLE001 - a view-side restore may still hold
             pass

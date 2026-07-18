@@ -694,14 +694,21 @@ def c28(fx):
         "freecad.FollowMeWB": os.path.join(
             _BUILD_ROOT, "FreeCAD-FollowMe", "freecad", "FollowMeWB"),
     }
-    off = assembly.sibling_icon_path("offset", package_dir_locator=loc.get)
-    ok(off is not None and os.path.isfile(off)
-       and off.endswith(os.path.join("Resources", "Icons", "offsettool.svg")),
-       "offset icon = %r" % (off,))
-    fm = assembly.sibling_icon_path("followme", package_dir_locator=loc.get)
-    ok(fm is not None and os.path.isfile(fm)
-       and fm.endswith(os.path.join("Resources", "Icons", "followme.svg")),
-       "followme icon = %r" % (fm,))
+    # the positive path needs the sibling build trees on this machine; skip
+    # with a warning when they are absent (same policy as the static xref
+    # check) so the harness stays green on other machines
+    if all(os.path.isdir(d) for d in loc.values()):
+        off = assembly.sibling_icon_path("offset", package_dir_locator=loc.get)
+        ok(off is not None and os.path.isfile(off)
+           and off.endswith(os.path.join("Resources", "Icons", "offsettool.svg")),
+           "offset icon = %r" % (off,))
+        fm = assembly.sibling_icon_path("followme", package_dir_locator=loc.get)
+        ok(fm is not None and os.path.isfile(fm)
+           and fm.endswith(os.path.join("Resources", "Icons", "followme.svg")),
+           "followme icon = %r" % (fm,))
+    else:
+        print("WARNING: sibling build trees absent, icon-resolution positive "
+              "path skipped on this machine")
     ok(assembly.sibling_icon_path(
         "offset", package_dir_locator=lambda package: None) is None,
        "absent package should give None (caller uses uppercut_missing.svg)")
@@ -1101,5 +1108,11 @@ def main():
     return 0
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+# Not guarded by __name__ == "__main__": stock freecadcmd (for example the
+# conda-forge 1.1.0 build) does not set __name__ that way, so a guarded
+# harness silently runs zero checks and still exits 0. Run unconditionally;
+# os._exit propagates the code without tripping freecadcmd's SystemExit
+# handling, and the flush beats freecadcmd's buffered stdout.
+rc = main()
+sys.stdout.flush()
+os._exit(rc)
