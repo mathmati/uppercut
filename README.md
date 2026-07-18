@@ -53,29 +53,29 @@ package-locator mechanism detection uses; nothing is copied into Uppercut.
 When a sibling is absent its button is omitted, and the Missing-companions
 menu note (which uses `uppercut_missing.svg`) says what to install.
 
-## Tool map (SketchUp tool -> Uppercut button)
+## Tool map
 
-| SketchUp | Uppercut | Backed by |
-|---|---|---|
-| Select | Select | own: cancels the active tool, clears the selection |
-| Line | Line | SketchLayer_Line |
-| Rectangle | Rectangle | SketchLayer_Rectangle |
-| Circle | Circle | SketchLayer_Circle |
-| Polygon | Polygon | SketchLayer_Polygon (type `8s` mid-tool for the side count) |
-| Arc | Arc | SketchLayer_Arc (3-point; commits an open edge, not a face) |
-| Push/Pull | Push/Pull | PushPull_PushPull |
-| Offset | Offset | OffsetTool_Offset |
-| Follow Me | Follow Me | FollowMe_Sweep |
-| Move/Rotate | Move/Rotate | own wrapper over FreeCAD's transform manipulator (probes Std_TransformManip, falls back to Std_Transform) |
-| Rotate | (menu only) | own wrapper over Draft_Rotate, probed at click time (Draft behavior) |
-| Scale | (menu only) | own wrapper over Draft_Scale, probed at click time (Draft behavior) |
-| Eraser | Eraser | own: deletes the selection in one undoable transaction; invoked with nothing selected it arms a click-to-delete session (Esc or Eraser again to finish) |
-| Make Group | Make Group | own: wraps the selection in a new App::Part, one undoable step |
-| Tape Measure | Tape Measure | own wrapper over the unified measure command (probes Std_Measure, falls back to Std_MeasureDistance) |
-| Paint Bucket | Paint Bucket | own: small palette popup, per-object color via ViewObject appearance |
-| Orbit / standard views | Iso, Top, Front, Right, Fit All | own wrappers over the Std_View* commands |
-| Add Location | Add Location | SiteContext_AddLocation |
-| Instructor | Instructor | MigrationGuide_ShowPanel; own About dialog if the guide is missing |
+| Tool | Backed by |
+|---|---|
+| Select | own: cancels the active tool, clears the selection |
+| Line | SketchLayer_Line |
+| Rectangle | SketchLayer_Rectangle |
+| Circle | SketchLayer_Circle |
+| Polygon | SketchLayer_Polygon (type `8s` mid-tool for the side count) |
+| Arc | SketchLayer_Arc (3-point; commits an open edge, not a face) |
+| Push/Pull | PushPull_PushPull |
+| Offset | OffsetTool_Offset |
+| Follow Me | FollowMe_Sweep |
+| Move/Rotate | own wrapper over FreeCAD's transform manipulator (probes Std_TransformManip, falls back to Std_Transform) |
+| Rotate (menu only) | own wrapper over Draft_Rotate, probed at click time (Draft behavior) |
+| Scale (menu only) | own wrapper over Draft_Scale, probed at click time (Draft behavior) |
+| Eraser | own: deletes the selection in one undoable transaction; invoked with nothing selected it arms a click-to-delete session (Esc or Eraser again to finish) |
+| Make Group | own: wraps the selection in a new App::Part, one undoable step |
+| Tape Measure | own wrapper over the unified measure command (probes Std_Measure, falls back to Std_MeasureDistance) |
+| Paint Bucket | own: small palette popup, per-object color via ViewObject appearance |
+| Iso, Top, Front, Right, Fit All | own wrappers over the Std_View* commands |
+| Add Location | SiteContext_AddLocation |
+| Instructor | MigrationGuide_ShowPanel; own About dialog if the guide is missing |
 
 Every button has its own icon. The own commands used to share the single
 workbench icon, which made the toolbar unreadable; each own command (Select,
