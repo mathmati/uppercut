@@ -4,6 +4,8 @@
 
 Uppercut is the direct-modeling interface we always wished FreeCAD had.
 
+Project page: [mathmati.github.io/uppercut](https://mathmati.github.io/uppercut/)
+
 It takes the best ideas from the easiest modelers to use (SketchUp's
 push/pull and inference drawing, Fusion 360's press-pull, Plasticity's
 direct modeling) and builds them into FreeCAD 1.1 as one native workbench,
