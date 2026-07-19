@@ -331,10 +331,7 @@ SketchLayer, Offset, FollowMe, SiteContext, Migration Guide); it does not
 re-implement their features, it assembles them and adds small glue tools. FreeCAD 1.1 itself
 moved part of the way here: the Tux navigation indicator does per-user
 navigation-style switching, the unified Measure command landed in 1.0, and
-PartDesign features got interactive gizmos in 1.1. This workbench is a
-curated subset aimed at users coming from SketchUp, not a replacement for
-the standard workbenches. The addon name and icon steer clear of the
-SketchUp trademark; "SketchUp-style" is used descriptively only.
+PartDesign features got interactive gizmos in 1.1. 
 
 ## License
 
@@ -342,4 +339,4 @@ MIT, see `LICENSE`.
 
 ## Transparency
 
-Built with AI assistance (Kimi Code); reviewed by a human.
+Built with AI assistance (Claude Code, Kimi Code & Google Gemini) by a human team.
