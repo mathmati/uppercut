@@ -3,7 +3,7 @@
 
 Run from the repo root (see the wrapper in the README; plain
 ``freecadcmd verify/headless_regression.py`` also works when invoked so that
-``__name__ == "__main__"``). Exit code 0 and a final "39/39 checks pass"
+``__name__ == "__main__"``). Exit code 0 and a final "44/44 checks pass"
 line when green.
 
 What is covered (the GUI itself is not; freecadcmd has no command manager,
@@ -66,6 +66,17 @@ so buttons, dialogs and probing through Gui.Command are out of scope here):
                        legacy-boolean migration, apply/restore across ALL
                        open views with fake gui/views, watcher decision +
                        reapply logic
+   companions    37-40 one-click companion install: pinned-URL registry
+                       consistency (1:1 with assembly.SIBLINGS, mathmati
+                       HTTPS zipballs only), extract/rename of a locally
+                       built fake zipball into a fake Mod dir (no network),
+                       no-overwrite skip + failure atomicity (corrupt zip,
+                       raising fetch, wrong root, zip-slip all leave Mod
+                       untouched), sequential install_missing isolates
+                       per-companion failures + companion_install stays
+                       PySide-free at module level (headless import)
+   wiring        41    install-command/dialog call sites in commands.py,
+                       init_gui.py and dialogs.py (static xref)
 """
 import os
 import sys
@@ -94,10 +105,10 @@ for _mod in list(sys.modules):
 import FreeCAD as App  # noqa: E402
 import Part  # noqa: E402  # makes Part::Box creatable
 
-from freecad.UppercutWB import (assembly, eraser, group, navstyle, paint,  # noqa: E402
-                                shortcuts, toolstate)
+from freecad.UppercutWB import (assembly, companion_install, eraser,  # noqa: E402
+                                group, navstyle, paint, shortcuts, toolstate)
 
-EXPECTED_CHECKS = 39
+EXPECTED_CHECKS = 44
 
 _checks = []
 
@@ -489,7 +500,8 @@ def c20(fx):
     own = [assembly.CMD_SELECT, assembly.CMD_MOVE_ROTATE, assembly.CMD_ROTATE,
            assembly.CMD_SCALE, assembly.CMD_ERASER, assembly.CMD_MAKE_GROUP,
            assembly.CMD_TAPE_MEASURE, assembly.CMD_PAINT, assembly.CMD_ABOUT,
-           assembly.CMD_RESTORE_NAV, assembly.CMD_MISSING_NOTE]
+           assembly.CMD_RESTORE_NAV, assembly.CMD_MISSING_NOTE,
+           assembly.CMD_INSTALL_COMPANIONS]
     own += [name for name, _std in assembly.VIEW_COMMANDS]
     ok(sorted(assembly.ICONS.keys()) == sorted(own),
        "ICONS keys != own commands: %r" % (sorted(assembly.ICONS.keys()),))
@@ -1183,6 +1195,267 @@ def c36(fx):
     state = dict(base, applied=False)
     ok(navstyle.watcher_should_apply(state) is False,
        "nothing applied -> nothing to keep applied")
+
+
+# --- 37-40: one-click companion install (no network; fake zipballs) -----------
+def _make_fake_zipball(zip_path, root, extra_entries=None):
+    """A minimal GitHub-style zipball: one ``<root>/`` top folder holding a
+    plausible addon (package.xml + freecad/<Pkg>/ files)."""
+    import zipfile as _zipfile
+
+    entries = {
+        root + "/package.xml": "<package>fake</package>\n",
+        root + "/freecad/FakeWB/__init__.py": "",
+        root + "/freecad/FakeWB/commands.py": "# fake\n",
+    }
+    entries.update(extra_entries or {})
+    with _zipfile.ZipFile(zip_path, "w") as zf:
+        for name, text in entries.items():
+            zf.writestr(name, text)
+
+
+def _fetch_fake_zipball(root, seen=None):
+    """A fetch(url, dest) that builds the fake zipball locally."""
+    def fetch(url, dest):
+        if seen is not None:
+            seen.append(url)
+        _make_fake_zipball(dest, root)
+    return fetch
+
+
+@check("companions: pinned URLs and the detection registry correspond 1:1")
+def c37(fx):
+    keys = [sib.key for sib in assembly.SIBLINGS]
+    ok(sorted(companion_install.PINNED_ZIP_URLS.keys()) == sorted(keys),
+       "pinned URL keys != registry keys: %r"
+       % (sorted(companion_install.PINNED_ZIP_URLS.keys()),))
+    urls = list(companion_install.PINNED_ZIP_URLS.values())
+    ok(len(set(urls)) == len(urls), "pinned URLs not distinct: %r" % (urls,))
+    repos = [sib.repo for sib in assembly.SIBLINGS]
+    ok(all(repos) and len(set(repos)) == len(repos),
+       "every sibling needs a distinct repo name: %r" % (repos,))
+    for sib in assembly.SIBLINGS:
+        url = companion_install.zip_url(sib)
+        ok(url == companion_install.zip_url(sib.key),
+           "zip_url(Sibling) != zip_url(key) for %s" % sib.key)
+        ok(url == ("https://github.com/mathmati/%s/archive/refs/heads/main.zip"
+                   % sib.repo),
+           "URL for %s is not the pinned mathmati zipball: %r" % (sib.key, url))
+        ok(url.startswith("https://github.com/mathmati/"),
+           "URL not pinned to github.com/mathmati: %r" % (url,))
+        ok(companion_install.zip_root_name(sib) == sib.repo + "-main",
+           "zip root for %s = %r"
+           % (sib.key, companion_install.zip_root_name(sib)))
+        ok(sib.repo in sib.install_hint,
+           "install hint for %s does not mention its repo" % sib.key)
+    ok("Uppercut" in companion_install.USER_AGENT
+       and "github.com/mathmati" in companion_install.USER_AGENT,
+       "User-Agent should be descriptive: %r" % (companion_install.USER_AGENT,))
+
+
+@check("companions: fake zipball is extracted, renamed and moved into Mod")
+def c38(fx):
+    import tempfile
+
+    sib = assembly.SIBLINGS[0]  # sketchlayer
+    with tempfile.TemporaryDirectory() as tmp:
+        mod_dir = companion_install.mod_directory(tmp)
+        ok(mod_dir == os.path.join(tmp, "Mod"), "mod dir = %r" % (mod_dir,))
+        seen = []
+        result = companion_install.install_companion(
+            sib, mod_dir, fetch=_fetch_fake_zipball(sib.repo + "-main", seen))
+        ok(result["status"] == "installed" and result["error"] is None,
+           "install result = %r" % (result,))
+        ok(seen == [companion_install.zip_url(sib)],
+           "fetch called with %r, not the pinned URL" % (seen,))
+        target = os.path.join(mod_dir, sib.repo)
+        ok(result["target"] == target, "target = %r" % (result["target"],))
+        ok(os.path.isfile(os.path.join(target, "package.xml"))
+           and os.path.isfile(os.path.join(
+               target, "freecad", "FakeWB", "commands.py")),
+           "extracted addon content missing under %r" % (target,))
+        leftovers = sorted(os.listdir(mod_dir))
+        ok(leftovers == [sib.repo],
+           "Mod should contain only the renamed addon (no <repo>-main, no "
+           "staging leftovers): %r" % (leftovers,))
+
+
+@check("companions: existing installs are never overwritten; failures are clean")
+def c39(fx):
+    import tempfile
+
+    sib = assembly.SIBLINGS[1]  # pushpull
+    root = sib.repo + "-main"
+    with tempfile.TemporaryDirectory() as tmp:
+        mod_dir = companion_install.mod_directory(tmp)
+        target = os.path.join(mod_dir, sib.repo)
+        os.makedirs(target)
+        sentinel = os.path.join(target, "user_was_here.txt")
+        with open(sentinel, "w", encoding="utf-8") as fh:
+            fh.write("precious local state\n")
+
+        def must_not_fetch(url, dest):
+            raise AssertionError("fetch ran although the target exists")
+        result = companion_install.install_companion(
+            sib, mod_dir, fetch=must_not_fetch)
+        ok(result["status"] == "skipped" and result["error"] is None,
+           "existing target should skip before downloading: %r" % (result,))
+        with open(sentinel, encoding="utf-8") as fh:
+            ok(fh.read() == "precious local state\n", "sentinel was touched")
+
+        def clean(after_msg):
+            entries = sorted(os.listdir(mod_dir))
+            ok(entries == [sib.repo],
+               "%s left debris in Mod: %r" % (after_msg, entries))
+        clean("skip")
+
+        other = assembly.SIBLINGS[2]  # offset, not installed in this Mod
+
+        def corrupt(url, dest):
+            with open(dest, "wb") as fh:
+                fh.write(b"this is not a zip archive")
+        result = companion_install.install_companion(other, mod_dir,
+                                                     fetch=corrupt)
+        ok(result["status"] == "failed" and result["error"],
+           "corrupt zip should fail with error text: %r" % (result,))
+        clean("corrupt zip")
+
+        def network_down(url, dest):
+            raise OSError("connection refused by example")
+        result = companion_install.install_companion(other, mod_dir,
+                                                     fetch=network_down)
+        ok(result["status"] == "failed"
+           and "connection refused by example" in result["error"],
+           "fetch error text should be reported: %r" % (result,))
+        clean("failed download")
+
+        result = companion_install.install_companion(
+            other, mod_dir, fetch=_fetch_fake_zipball("WrongRoot-main"))
+        ok(result["status"] == "failed"
+           and "unexpected archive layout" in result["error"],
+           "wrong zip root should be rejected: %r" % (result,))
+        clean("wrong root")
+
+        def slip(url, dest):
+            _make_fake_zipball(dest, other.repo + "-main", extra_entries={
+                other.repo + "-main/../../evil.txt": "escaped\n"})
+        result = companion_install.install_companion(other, mod_dir,
+                                                     fetch=slip)
+        ok(result["status"] == "failed" and "unsafe path" in result["error"],
+           "zip-slip entry should be rejected: %r" % (result,))
+        clean("zip-slip")
+        ok(not os.path.exists(os.path.join(tmp, "evil.txt"))
+           and not os.path.exists(os.path.join(mod_dir, "evil.txt")),
+           "zip-slip file escaped the staging directory")
+
+
+@check("companions: install_missing is sequential, one failure never stops it")
+def c40(fx):
+    import ast
+    import tempfile
+
+    good1, bad, good2 = (assembly.SIBLINGS[2], assembly.SIBLINGS[3],
+                         assembly.SIBLINGS[4])
+
+    def fetch(url, dest):
+        if url == companion_install.zip_url(bad):
+            raise OSError("server sent a teapot")
+        for sib in (good1, good2):
+            if url == companion_install.zip_url(sib):
+                _make_fake_zipball(dest, sib.repo + "-main")
+                return
+        raise AssertionError("unexpected URL fetched: %r" % (url,))
+
+    events = []
+
+    def progress(sib, phase):
+        events.append((sib.key, phase if phase == "start" else phase["status"]))
+        raise RuntimeError("a broken progress callback must be swallowed")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        mod_dir = companion_install.mod_directory(tmp)
+        results = companion_install.install_missing(
+            [good1, bad, good2], mod_dir, fetch=fetch, progress=progress)
+        ok([r["status"] for r in results] == ["installed", "failed",
+                                              "installed"],
+           "results = %r" % ([r["status"] for r in results],))
+        ok("server sent a teapot" in results[1]["error"],
+           "failed error text lost: %r" % (results[1],))
+        ok(sorted(os.listdir(mod_dir)) == sorted([good1.repo, good2.repo]),
+           "exactly the two good companions should be installed: %r"
+           % (sorted(os.listdir(mod_dir)),))
+        ok(events == [(good1.key, "start"), (good1.key, "installed"),
+                      (bad.key, "start"), (bad.key, "failed"),
+                      (good2.key, "start"), (good2.key, "installed")],
+           "progress sequence = %r" % (events,))
+
+    # headless purity: no module-level PySide (or FreeCADGui) import in the
+    # network/extraction core -- freecadcmd must be able to import it
+    src_path = os.path.join(_REPO_ROOT, "freecad", "UppercutWB",
+                            "companion_install.py")
+    with open(src_path, encoding="utf-8") as fh:
+        tree = ast.parse(fh.read())
+    for node in tree.body:
+        names = []
+        if isinstance(node, ast.Import):
+            names = [alias.name for alias in node.names]
+        elif isinstance(node, ast.ImportFrom):
+            names = [node.module or ""]
+        for name in names:
+            ok(not name.startswith("PySide") and "FreeCADGui" not in name,
+               "companion_install.py imports %r at module level" % (name,))
+
+
+# --- 41: install entry-point wiring (static xref) ------------------------------
+@check("wiring: install command, menu item and dialog call sites")
+def c41(fx):
+    pkg = os.path.join(_REPO_ROOT, "freecad", "UppercutWB")
+    with open(os.path.join(pkg, "commands.py"), encoding="utf-8") as fh:
+        commands_src = fh.read()
+    with open(os.path.join(pkg, "init_gui.py"), encoding="utf-8") as fh:
+        init_src = fh.read()
+    with open(os.path.join(pkg, "dialogs.py"), encoding="utf-8") as fh:
+        dialogs_src = fh.read()
+
+    for needle in (
+            "class _InstallCompanionsCommand",
+            "dialogs.show_companion_install(missing)"):
+        ok(needle in commands_src, "%r missing from commands.py" % needle)
+    # the command exists only while something is missing (same guard as the
+    # missing-companions note): registration sits inside the if-missing block
+    guard = commands_src.index("if missing:",
+                               commands_src.index("def register("))
+    note_reg = commands_src.index("Gui.addCommand(assembly.CMD_MISSING_NOTE")
+    install_reg = commands_src.index(
+        "Gui.addCommand(assembly.CMD_INSTALL_COMPANIONS")
+    ok(guard < note_reg < install_reg,
+       "install-command registration is not under the if-missing guard")
+
+    # menu wiring: appended right after the missing note, same guard
+    menu_guard = init_src.index("if missing:")
+    note_menu = init_src.index("menu.append(assembly.CMD_MISSING_NOTE)")
+    install_menu = init_src.index(
+        "menu.append(assembly.CMD_INSTALL_COMPANIONS)")
+    ok(menu_guard < note_menu < install_menu,
+       "menu item is not under the if-missing guard in init_gui.py")
+
+    # dialog layer: thin over companion_install, sequential with
+    # processEvents, shows the pinned URLs and the restart note, and the
+    # About box gains the install button when something is missing
+    for needle in (
+            "def show_companion_install(",
+            "class CompanionInstallDialog",
+            "companion_install.zip_url(sib)",
+            "install_missing(",
+            "mod_directory(App.getUserAppDataDir())",
+            "processEvents",
+            "restart FreeCAD",
+            'addButton("Install missing..."'):
+        ok(needle in dialogs_src, "%r missing from dialogs.py" % needle)
+    ok("QThread" not in dialogs_src and "Thread" not in dialogs_src,
+       "the installer dialog must stay sequential (no worker threads)")
+    ok("show_companion_install(missing)" in dialogs_src,
+       "About box does not hand the missing list to the installer")
 
 
 def main():

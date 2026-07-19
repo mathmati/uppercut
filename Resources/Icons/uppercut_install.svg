@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <style>
+      .tray  { fill:none; stroke:#3d6d8f; stroke-width:3.2; stroke-linecap:round; stroke-linejoin:round; }
+      .arrow { fill:#c0392b; stroke:none; }
+    </style>
+  </defs>
+  <path class="tray" d="M12 40 V50 A4 4 0 0 0 16 54 H48 A4 4 0 0 0 52 50 V40" />
+  <path class="arrow" d="M28 10 H36 V28 H45 L32 44 L19 28 H28 Z" />
+</svg>

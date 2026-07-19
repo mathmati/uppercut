@@ -44,6 +44,13 @@ FreeCAD `Mod` folder and restart. The folder is
 `App.getUserAppDataDir()` in FreeCAD's Python console and use the `Mod`
 folder inside the printed path.
 
+If you install only Uppercut, it can fetch the missing companions for
+you: open the Uppercut menu, pick "Install missing companions...", check
+the ones you want, and restart FreeCAD afterwards. It downloads them
+straight from the mathmati repositories listed above and never touches an
+addon that is already installed. The Addon Manager route works just as
+well; this is only a shortcut.
+
 ## What it is
 
 Uppercut is an umbrella workbench. The drawing, push/pull, offset, follow-me,

@@ -38,6 +38,7 @@ CMD_PAINT = "Uppercut_PaintBucket"
 CMD_ABOUT = "Uppercut_About"
 CMD_RESTORE_NAV = "Uppercut_RestoreNavigation"
 CMD_MISSING_NOTE = "Uppercut_MissingCompanions"
+CMD_INSTALL_COMPANIONS = "Uppercut_InstallCompanions"
 
 #: Own view wrappers and the built-in command each one relays to, in order.
 VIEW_COMMANDS = (
@@ -68,6 +69,7 @@ ICONS = {
     CMD_ABOUT: "uppercut_about.svg",
     CMD_RESTORE_NAV: "uppercut_navigation.svg",
     CMD_MISSING_NOTE: "uppercut_missing.svg",
+    CMD_INSTALL_COMPANIONS: "uppercut_install.svg",
     "Uppercut_ViewIso": "uppercut_view_iso.svg",
     "Uppercut_ViewTop": "uppercut_view_top.svg",
     "Uppercut_ViewFront": "uppercut_view_front.svg",
@@ -92,10 +94,19 @@ SEPARATOR = "Separator"
 
 
 class Sibling(object):
-    """One companion addon Uppercut draws toolbar buttons from."""
+    """One companion addon Uppercut draws toolbar buttons from.
+
+    ``repo`` is the GitHub repository name under github.com/mathmati; it is
+    also the folder name the addon lives under in the user's Mod directory
+    (``git clone`` and the Addon Manager's custom-repository install both
+    name the folder after the repository; import detection itself is
+    folder-name agnostic, FreeCAD puts every Mod subdirectory on the addon
+    search path and :func:`find_package_dir` resolves ``package`` from
+    there). companion_install.py uses ``repo`` for the one-click install.
+    """
 
     def __init__(self, key, title, package, commands, install_hint, provides,
-                 icon=None):
+                 icon=None, repo=None):
         self.key = key
         self.title = title
         self.package = package
@@ -103,6 +114,7 @@ class Sibling(object):
         self.install_hint = install_hint
         self.provides = provides
         self.icon = icon
+        self.repo = repo
 
 
 #: Companion addons, in toolbar order of their first appearance.
@@ -119,6 +131,7 @@ SIBLINGS = (
         provides=("Line/Rectangle/Circle/Polygon/Arc drawing in the 3D view "
                   "with inference cues and type-to-dimension"),
         icon="sketchlayer.svg",
+        repo="FreeCAD-SketchLayer",
     ),
     Sibling(
         key="pushpull",
@@ -129,6 +142,7 @@ SIBLINGS = (
                       "github.com/mathmati/FreeCAD-PushPull"),
         provides="Push/Pull direct modeling (click-drag a face to Pad/Pocket)",
         icon="pushpull.svg",
+        repo="FreeCAD-PushPull",
     ),
     Sibling(
         key="offset",
@@ -140,6 +154,7 @@ SIBLINGS = (
         provides=("Offset a planar face's boundary inward/outward, in its "
                   "own plane"),
         icon="offsettool.svg",
+        repo="FreeCAD-Offset",
     ),
     Sibling(
         key="followme",
@@ -150,6 +165,7 @@ SIBLINGS = (
                       "github.com/mathmati/FreeCAD-FollowMe"),
         provides="Follow Me: sweep a profile face along a path of edges",
         icon="followme.svg",
+        repo="FreeCAD-FollowMe",
     ),
     Sibling(
         key="sitecontext",
@@ -160,6 +176,7 @@ SIBLINGS = (
                       "github.com/mathmati/FreeCAD-SiteContext"),
         provides="Add Location: OpenStreetMap site background and terrain",
         icon="sitecontext.svg",
+        repo="FreeCAD-SiteContext",
     ),
     Sibling(
         key="migrationguide",
@@ -170,6 +187,7 @@ SIBLINGS = (
                       "github.com/mathmati/FreeCAD-Migration-Guide"),
         provides="Instructor panel (migration guide and guided tour)",
         icon="migrationguide.svg",
+        repo="FreeCAD-Migration-Guide",
     ),
 )
 

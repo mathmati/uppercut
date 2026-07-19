@@ -530,6 +530,30 @@ class _MissingNoteCommand(object):
         dialogs.show_about(detect_available())
 
 
+class _InstallCompanionsCommand(object):
+    """One-click installer for the missing companions (companion_install +
+    the dialogs.show_companion_install layer). Registered, like the missing
+    note, only while something is actually missing."""
+
+    def GetResources(self):
+        return _resources(
+            "Install missing companions...",
+            "Download the missing companion addons from their pinned "
+            "github.com/mathmati repositories into your Mod folder "
+            "(restart FreeCAD afterwards)",
+            assembly.CMD_INSTALL_COMPANIONS,
+        )
+
+    def IsActive(self):
+        return True
+
+    def Activated(self):
+        from . import dialogs
+
+        _found, missing = assembly.companions_report(detect_available())
+        dialogs.show_companion_install(missing)
+
+
 # --- registration -------------------------------------------------------------
 def ensure_sibling_commands():
     """Force-register installed siblings' commands (they register lazily).
@@ -588,3 +612,5 @@ def register(available):
     if missing:
         Gui.addCommand(assembly.CMD_MISSING_NOTE,
                        _MissingNoteCommand([s.title for s in missing]))
+        Gui.addCommand(assembly.CMD_INSTALL_COMPANIONS,
+                       _InstallCompanionsCommand())

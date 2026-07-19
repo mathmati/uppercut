@@ -64,6 +64,7 @@ class UppercutWorkbench(Gui.Workbench):
         _found, missing = assembly.companions_report(available)
         if missing:
             menu.append(assembly.CMD_MISSING_NOTE)
+            menu.append(assembly.CMD_INSTALL_COMPANIONS)
         self.appendMenu("Uppercut", menu)
 
     def _apply_shortcuts(self, shortcuts, commands):
