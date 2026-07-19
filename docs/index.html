@@ -25,13 +25,51 @@
       --line: #2c343d;
     }
   }
+  /* The lights-out toggle sets data-theme; it must win in both directions,
+     including over the media query above. */
+  :root[data-theme="light"] {
+    --ink: #1c2430;
+    --muted: #5a6572;
+    --bg: #ffffff;
+    --panel: #f4f6f8;
+    --line: #dde3e9;
+  }
+  :root[data-theme="dark"] {
+    --ink: #e8ecf1;
+    --muted: #9aa5b1;
+    --bg: #14181d;
+    --panel: #1d232a;
+    --line: #2c343d;
+  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--ink);
     background: var(--bg);
     line-height: 1.6;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
+  #lights {
+    position: fixed; top: 14px; right: 14px; z-index: 10;
+    width: 42px; height: 42px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--panel);
+    color: var(--ink); cursor: pointer; padding: 0;
+    display: none; align-items: center; justify-content: center;
+  }
+  :root[data-theme] #lights { display: flex; }  /* needs JS; hidden without */
+  #lights:hover { border-color: var(--muted); }
+  #lights svg { width: 26px; height: 26px; }
+  #face-ko { display: none; }
+  :root[data-theme="dark"] #face-awake { display: none; }
+  :root[data-theme="dark"] #face-ko { display: block; }
+  @keyframes ko-wobble {
+    0% { transform: rotate(0); }
+    30% { transform: rotate(-22deg); }
+    60% { transform: rotate(15deg); }
+    80% { transform: rotate(-6deg); }
+    100% { transform: rotate(0); }
+  }
+  #lights.punch svg { animation: ko-wobble 0.45s ease; }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
   header { text-align: center; padding: 56px 0 40px; }
   header img { width: 200px; max-width: 60%; height: auto; }
@@ -72,8 +110,40 @@
   footer { padding: 32px 0 48px; text-align: center; color: var(--muted); font-size: 0.85rem; }
   footer a { color: var(--muted); }
 </style>
+<script>
+(function () {
+  var saved = null;
+  try { saved = localStorage.getItem("uppercut-theme"); } catch (e) {}
+  var dark = saved ? saved === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.dataset.theme = dark ? "dark" : "light";
+})();
+</script>
 </head>
 <body>
+
+<button id="lights" aria-label="Lights out" title="Lights out">
+  <svg id="face-awake" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="13" r="8"/>
+    <circle cx="9.4" cy="12" r="0.7" fill="currentColor" stroke="none"/>
+    <circle cx="14.6" cy="12" r="0.7" fill="currentColor" stroke="none"/>
+    <path d="M9.5 15.6 Q12 17.8 14.5 15.6"/>
+  </svg>
+  <svg id="face-ko" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
+    <g transform="rotate(9 12 14)">
+      <circle cx="12" cy="14" r="7.4"/>
+      <path d="M8.7 11.8 l1.7 1.7 M10.4 11.8 l-1.7 1.7"/>
+      <path d="M13.6 11.8 l1.7 1.7 M15.3 11.8 l-1.7 1.7"/>
+      <circle cx="12" cy="17.1" r="0.9"/>
+    </g>
+    <path d="M4.4 4.8 v-2.4 M3.2 3.6 h2.4"/>
+    <path d="M19.6 3.8 v-2.2 M18.5 2.7 h2.2"/>
+    <circle cx="12" cy="2.1" r="0.5" fill="currentColor" stroke="none"/>
+  </svg>
+</button>
+
 <div class="wrap">
 
 <header>
@@ -164,5 +234,27 @@
 </footer>
 
 </div>
+
+<script>
+(function () {
+  var btn = document.getElementById("lights");
+  function setTitle() {
+    var dark = document.documentElement.dataset.theme === "dark";
+    btn.title = dark ? "Wake him up" : "Lights out";
+    btn.setAttribute("aria-label", btn.title);
+  }
+  setTitle();
+  btn.addEventListener("click", function () {
+    var root = document.documentElement;
+    var next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try { localStorage.setItem("uppercut-theme", next); } catch (e) {}
+    btn.classList.remove("punch");
+    void btn.offsetWidth;  /* restart the wobble */
+    btn.classList.add("punch");
+    setTitle();
+  });
+})();
+</script>
 </body>
 </html>
