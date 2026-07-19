@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uppercut - a direct-modeling workbench for FreeCAD</title>
+<meta name="description" content="Uppercut is a SketchUp-style direct-modeling workbench for FreeCAD 1.1. Draw, push/pull, offset and sweep on one toolbar; every action commits a normal parametric feature.">
+<link rel="icon" href="logo.png">
+<style>
+  :root {
+    --red: #d94f3d;
+    --blue: #3d7bd9;
+    --ink: #1c2430;
+    --muted: #5a6572;
+    --bg: #ffffff;
+    --panel: #f4f6f8;
+    --line: #dde3e9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e8ecf1;
+      --muted: #9aa5b1;
+      --bg: #14181d;
+      --panel: #1d232a;
+      --line: #2c343d;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  header { text-align: center; padding: 56px 0 40px; }
+  header img { width: 200px; max-width: 60%; height: auto; border-radius: 14px; }
+  h1 { font-size: 2.2rem; margin-top: 20px; letter-spacing: -0.02em; }
+  .tagline { font-size: 1.15rem; color: var(--muted); margin-top: 10px; }
+  .beta {
+    display: inline-block; margin-top: 16px; padding: 3px 12px;
+    border: 1px solid var(--line); border-radius: 999px;
+    font-size: 0.85rem; color: var(--muted);
+  }
+  .buttons { margin-top: 26px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 10px 22px; border-radius: 8px;
+    text-decoration: none; font-weight: 600; font-size: 0.95rem;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-secondary { border: 1.5px solid var(--line); color: var(--ink); }
+  section { padding: 28px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 1.25rem; margin-bottom: 12px; }
+  p + p { margin-top: 10px; }
+  .tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .tool {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 6px; padding: 4px 12px; font-size: 0.9rem;
+  }
+  ol { padding-left: 22px; margin-top: 10px; }
+  ol li { margin-top: 6px; }
+  code {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 4px; padding: 1px 6px; font-size: 0.88em;
+    word-break: break-all;
+  }
+  ul.companions { list-style: none; margin-top: 12px; }
+  ul.companions li { margin-top: 6px; }
+  ul.companions a { color: var(--blue); text-decoration: none; }
+  ul.companions a:hover { text-decoration: underline; }
+  .muted { color: var(--muted); }
+  footer { padding: 32px 0 48px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <img src="logo.png" alt="Uppercut logo: a boxing glove, half red, half blue, with a white F">
+  <h1>Uppercut</h1>
+  <p class="tagline">The direct-modeling interface we always wished FreeCAD had.</p>
+  <span class="beta">beta - live for initial discussion and feedback</span>
+  <div class="buttons">
+    <a class="btn btn-primary" href="https://github.com/mathmati/uppercut">View on GitHub</a>
+    <a class="btn btn-secondary" href="https://github.com/mathmati/uppercut#how-to-install">How to install</a>
+  </div>
+</header>
+
+<section>
+  <h2>What it is</h2>
+  <p>
+    Uppercut takes the best ideas from the easiest modelers to use
+    (SketchUp's push/pull and inference drawing, Fusion 360's press-pull)
+    and builds them into FreeCAD 1.1 as one native workbench. Every drag,
+    offset and sweep commits an ordinary parametric feature, so direct
+    modeling and FreeCAD's full feature tree are always both available.
+  </p>
+  <p>
+    One toolbar covers the whole draw-extrude-measure loop, with
+    single-letter shortcuts scoped to the workbench.
+  </p>
+  <div class="tools">
+    <span class="tool">Select</span>
+    <span class="tool">Line</span>
+    <span class="tool">Rectangle</span>
+    <span class="tool">Circle</span>
+    <span class="tool">Polygon</span>
+    <span class="tool">Arc</span>
+    <span class="tool">Push/Pull</span>
+    <span class="tool">Offset</span>
+    <span class="tool">Follow Me</span>
+    <span class="tool">Move/Rotate</span>
+    <span class="tool">Scale</span>
+    <span class="tool">Eraser</span>
+    <span class="tool">Tape Measure</span>
+    <span class="tool">Paint Bucket</span>
+    <span class="tool">Make Group</span>
+    <span class="tool">Add Location</span>
+  </div>
+</section>
+
+<section>
+  <h2>Install</h2>
+  <ol>
+    <li>In FreeCAD 1.1, open <strong>Edit &gt; Preferences &gt; Addon Manager</strong>
+        and add <code>https://github.com/mathmati/uppercut</code> under
+        Custom repositories (branch <code>main</code>).</li>
+    <li>Add the companion repos you want the same way (list below). Each is
+        optional; Uppercut only shows buttons for what is installed.</li>
+    <li>Install them from <strong>Tools &gt; Addon manager</strong>, restart,
+        and pick <strong>Uppercut</strong> in the workbench dropdown.</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Companion add-ons</h2>
+  <p class="muted">Uppercut is an umbrella: the drawing and modeling tools come
+     from small standalone add-ons it detects and arranges.</p>
+  <ul class="companions">
+    <li><a href="https://github.com/mathmati/FreeCAD-SketchLayer">SketchLayer</a> - drawing in the 3D view with inference cues and type-to-dimension</li>
+    <li><a href="https://github.com/mathmati/FreeCAD-PushPull">PushPull</a> - click-drag a face to a parametric Pad or Pocket</li>
+    <li><a href="https://github.com/mathmati/FreeCAD-Offset">Offset</a> - offset a face boundary in its own plane</li>
+    <li><a href="https://github.com/mathmati/FreeCAD-FollowMe">FollowMe</a> - sweep a profile along a path of edges</li>
+    <li><a href="https://github.com/mathmati/FreeCAD-SiteContext">SiteContext</a> - real map imagery, OpenStreetMap buildings and terrain</li>
+    <li><a href="https://github.com/mathmati/FreeCAD-Migration-Guide">Migration Guide</a> - instructor panel for people coming from Fusion 360 or SolidWorks</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Early days</h2>
+  <p>
+    This is a young project. It is verified with a headless regression
+    suite on every change, but real-world feedback is what improves it.
+    If something feels wrong, send a screenshot and the error to the
+    <a href="https://github.com/mathmati/uppercut/issues" style="color: var(--blue)">issue tracker</a>
+    and we will iterate.
+  </p>
+</section>
+
+<footer>
+  MIT licensed. Not affiliated with Trimble or SketchUp.
+  <br><a href="https://github.com/mathmati">More FreeCAD add-ons by mathmati</a>
+</footer>
+
+</div>
+</body>
+</html>

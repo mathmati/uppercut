@@ -13,6 +13,35 @@ always both available. One toolbar covers the whole draw-extrude-measure
 loop, assembled from six companion addons plus small glue tools of its own,
 with single-letter shortcuts for the main tools.
 
+## How to install
+
+Uppercut is not in the official FreeCAD addon index yet, so the Addon
+Manager needs to be told where it lives. Once, in FreeCAD 1.1:
+
+1. Open **Edit > Preferences > Addon Manager**.
+2. Under **Custom repositories**, add:
+   `https://github.com/mathmati/uppercut` (branch `main`).
+3. While you are there, add the companions you want the same way. Each is
+   optional; Uppercut shows a button only for what is installed:
+   - `https://github.com/mathmati/FreeCAD-SketchLayer` (Line, Rectangle,
+     Circle, Polygon, Arc)
+   - `https://github.com/mathmati/FreeCAD-PushPull` (Push/Pull)
+   - `https://github.com/mathmati/FreeCAD-Offset` (Offset)
+   - `https://github.com/mathmati/FreeCAD-FollowMe` (Follow Me)
+   - `https://github.com/mathmati/FreeCAD-SiteContext` (Add Location)
+   - `https://github.com/mathmati/FreeCAD-Migration-Guide` (Instructor)
+4. Open **Tools > Addon manager**, install **Uppercut** and the
+   companions, and restart FreeCAD when it asks.
+5. Pick **Uppercut** in the workbench dropdown.
+
+Manual alternative: `git clone` this repo (and any companions) into your
+FreeCAD `Mod` folder and restart. The folder is
+`%APPDATA%\FreeCAD\Mod` on Windows,
+`~/Library/Application Support/FreeCAD/Mod` on macOS, and
+`~/.local/share/FreeCAD/Mod` on Linux; if in doubt, run
+`App.getUserAppDataDir()` in FreeCAD's Python console and use the `Mod`
+folder inside the printed path.
+
 ## What it is
 
 Uppercut is an umbrella workbench. The drawing, push/pull, offset, follow-me,
